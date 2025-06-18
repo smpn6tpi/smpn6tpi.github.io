@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <link href="/favicon.ico" rel="icon" type="image/x-icon" />
+    <title>SMP Negeri 6 Tanjungpinang</title>
+    <style>
+      #preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 95%;
+        height: 100%;
+        background: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+    <style id="smpn6-main-css">
+      #header,
+      #main,
+      #footer {
+        display: none;
+      }
+    </style>
+    <base href="https://www.smpn6tpi.sch.id">
+  </head>
+
+  <body>
+    <div id="preloader">Memuat...</div>
+
+    <div id="header">
+      <header>
+        <div class="logo">
+          <img src="https://smpn6tpi.github.io/assets/gambar/logo-smpn6tpi.png" alt="Logo SMP" />
+          <h1>SMPN 6 Tanjungpinang</h1>
+        </div>
+        <nav>
+          <div class="menu-toggle" id="menuToggle">&#9776;</div>
+          <ul id="navMenu">
+            <li><a href="/">Beranda</a></li>
+            <li class="dropdown" id="profilDropdown">
+              <a href="#" class="dropdown-link">Profil</a>
+              <div class="dropdown-content" id="profilContent">
+                <a href="/p/profil-umum-smp-negeri-6-tanjungpinang.html">Profil Umum</a>
+                <a href="/p/visi-dan-misi-smp-negeri-6-tanjungpinang.html">Visi dan Misi</a>
+                <a href="/#sambutan">Sambutan Kepala Sekolah</a>
+                <a href="/p/guru-tu-smp-negeri-6-tanjungpinang.html">Guru dan TU</a>
+                <a href="/p/prestasi-smp-negeri-6-tanjungpinang.html">Prestasi</a>
+              </div>
+            </li>
+            <li class="dropdown" id="akademikDropdown">
+              <a href="#" class="dropdown-link">Akademik</a>
+              <div class="dropdown-content" id="akademikContent">
+                <a href="/p/struktur-kurikulum-smpn-6-tanjungpinang.html">Struktur Kurikulum</a>
+                <a href="/2025/07/jadwal-pelajaran-2025-2026.html">Jadwal Pelajaran</a>
+              </div>
+            </li>
+            <li id="tautan-pendaftaran"></li>
+            <li><a href="#kontak">Kontak</a></li>
+          </ul>
+          <div class="mobile-overlay" id="mobileOverlay"></div>
+        </nav>
+      </header>
+    </div>
+
+    <main id="main">
+      <div class="single-post-layout">
+        <article class="post-main-content">
+<!--div class="breadcrumb"></div-->
+ <h2 class="post-title">SIMURAH</h2>
+<!--div class="post-meta"></div-->
+<div class="post-body">
+<style id="css-style-simurah">#app-container{display:none;}</style>
+
+<div id="app-container">
+    
+    <div id="menu-header">
+        <button id="menu-toggle-btn">&#9776; Menu</button>
+    </div>
+    
+    <div id="menu-wrapper"> <div id="toggle-buttons">
+            <div id="showInputBtn" class="toggle-tab tab-active" data-target="input-absen">&#9997;&#65039; Input</div>
+            <div id="showRekapHarianBtn" class="toggle-tab tab-inactive" data-target="rekap-absen">📊 Absen</div>
+            <div id="showRekapVerifikasiBtn" class="toggle-tab tab-inactive" data-target="rekap-kehadiran">📝 Kehadiran</div>
+            <div id="showRekapBulananBtn" class="toggle-tab tab-inactive" data-target="rekap-bulanan">📅 Rekap</div>
+        </div>
+    </div>
+
+    <div class="tab-content-section" id="input-absen">
+        <div class="input-absen-form-container">
+            <p class="status-message" id="input-status" style="color: blue; font-weight: bold; margin-bottom: 15px;">Pilih kelas untuk memulai...</p>
+
+            <div id="absensiForm" style="margin:15px auto;">
+                <div class="form-group">
+                    <label for="kelas">Pilih Kelas:</label>
+                    <select id="kelas" name="kelas" required>
+                        <option value="">-- Muat Kelas --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="pin">PIN Harian:</label>
+                    <input type="text" id="pin" name="pin" placeholder="Masukkan PIN Harian" required>
+                </div>
+                
+                <hr style="margin: 20px 0;">
+                
+                <p style="font-weight: bold; margin-bottom: 10px;">Input Absensi Murid:</p>
+                
+                <div class="form-group">
+                    <label for="nama">Nama Murid:</label>
+                    <select id="nama" name="nama" required disabled>
+                        <option value="">-- Pilih Kelas Dahulu --</option>
+                    </select>
+                    <input type="text" id="namaManual" placeholder="Input nama manual (jika 'Lainnya')" style="display: none; margin-top: 5px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="keterangan">Keterangan Absen:</label>
+                    <select id="keterangan" name="keterangan" required disabled>
+                        <option value="">-- Pilih Keterangan --</option>
+                        <option value="Ijin">Ijin</option>
+                        <option value="Sakit">Sakit</option>
+                        <option value="Tanpa Keterangan">Tanpa Keterangan (TK)</option>
+                        <option value="Bolos">Bolos</option>
+                    </select>
+                </div>
+
+                <button type="button" id="addButton" disabled style="background-color: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 20px;">+ Tambah ke Daftar Tunggu</button>
+            </div>
+
+            <div id="queue-container" style="border: 1px dashed #ccc; padding: 10px; border-radius: 5px; min-height: 50px; display: none;">
+                <p style="font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 0;">Daftar Tunggu Kirim:</p>
+                <ul id="absensiQueue" style="list-style-type: none; padding: 0;">
+                </ul>
+                <button type="button" id="sendQueueBtn" disabled style="background-color: #00448A; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px;">Kirim Semua Absensi (0 entri)</button>
+            </div>
+        </div>
+    </div> 
+    
+    <div class="tab-content-section" id="rekap-absen">
+        <p id="current-mode-rekap-absen" style="text-align: center; font-weight: bold; margin-bottom: 10px;"></p>
+
+        <table class="noborder" style="margin:auto;">
+            <tr>
+                <th><button style="background-color:#FFC107; color: #333; border:1px solid #FFC107; padding:5px; font-weight:bold;" id="refreshButton">UPDATE</button></th>
+                <th><button style="background-color:#FFC107; color: #333; border:1px solid #FFC107; padding:5px; font-weight:bold;" id="goToVerifikasiBtn">VERIFIKASI</button></th>
+            </tr>
+        </table>
+
+        <div id="loading-status-rekap-absen" style="text-align: center; padding: 20px; color: #555;">Memuat data...</div>
+        
+        <div id="rekap-table-container-rekap-absen"></div>
+    </div> 
+    
+    <div class="tab-content-section" id="rekap-kehadiran">
+        <div id="status-verif" class="status-loading-2">Memuat data kehadiran...</div>
+
+        <table class="noborder" style="margin:auto;">
+            <tr>
+                <th><button style="background-color:#FFC107; color: #333; border:1px solid #FFC107; padding:5px; font-weight:bold;" id="refreshVerifikasiBtn">UPDATE</button></th>
+                <th><button style="background-color:#FFC107; color: #333; border:1px solid #FFC107; padding:5px; font-weight:bold;" id="goToInputBtn">INPUT ABSEN</button></th>
+            </tr>
+        </table>
+
+        <div class="table-responsive">
+            <table id="rekapKehadiranTable" class="data-table">
+                <thead>
+                    <tr>
+                        <th>Cek</th> 
+                        <th>Kelas</th>
+                        <th>Total Murid</th>
+                        <th>Hadir</th>
+                        <th>Izin (I)</th>
+                        <th>Sakit (S)</th>
+                        <th>Tanpa Ket. (A)</th>
+                        <th>Bolos (B)</th>
+                        <th>% Hadir</th>
+                    </tr>
+                </thead>
+                <tbody id="rekapKehadiranBody">
+                </tbody>
+            </table>
+        </div>
+    </div> 
+    
+    <div class="tab-content-section" id="rekap-bulanan">
+        
+        <div id="rekap-bulanan-gate" style="max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; text-align: center; background-color: #f9f9f9;">
+            <p style="font-weight: bold; color: #d9534f; margin-bottom: 20px;">Akses Terbatas. Masukkan PIN yang valid untuk melihat Rekap Bulanan.</p>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label for="pinBulanan">PIN Harian:</label>
+                <input type="text" id="pinBulanan" placeholder="Masukkan PIN 4 digit" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <button id="verifyPinBulananBtn" style="background-color: #00448A; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold;">Verifikasi PIN & Tampilkan Rekap</button>
+            <p id="pin-bulanan-status" style="margin-top: 15px; font-weight: bold;"></p>
+        </div>
+
+        <div id="rekap-bulanan-content" style="display: none;"> 
+            <p id="current-mode-rekap-bulanan" style="text-align: center; font-weight: bold; margin-bottom: 10px;">Pilih Bulan dan Tahun:</p>
+
+            <div class="filter-controls" style="text-align: center; margin-bottom: 20px;">
+                <select id="filterMonth"></select>
+                <select id="filterYear"></select>
+                <button id="applyFilter">Terapkan Filter</button>
+            </div>
+
+            <div id="loading-status-rekap-bulanan" style="text-align: center; padding: 20px; color: #555;">Memuat data...</div>
+            
+            <div id="chart-area" style="width: 100%; height: 350px; margin-bottom: 20px;"></div>
+
+            <div id="rekap-table-container-rekap-bulanan"></div>
+        </div>
+    </div>
+    
+</div>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://smpn6tpi.github.io/assets/js/simurah4tab.js"></script>
+</div>      
+        </article>
+
+        <aside class="post-sidebar">
+          <form action="/search" method="get">
+            <input style="width: 100%; padding: 5px; margin-bottom: 15px;" name="q" placeholder="Cari di sini" type="search" />
+          </form>
+
+<script src="https://smpn6tpi.github.io/assets/js/aside-post-terbaru.js"></script>
+
+          <h3>Terbaru</h3>
+
+          <ul id="post-terbaru-aside"></ul>
+
+          <script type="text/javascript" src="/feeds/posts/default/?alt=json-in-script&amp;max-results=5&amp;callback=showLabelPosts"></script>
+
+          <script src="https://smpn6tpi.github.io/assets/js/aside-berita-terbaru.js"></script>
+
+          <h3>Berita</h3>
+
+          <ul id="berita-terbaru-aside"></ul>
+
+          <script type="text/javascript" src="/feeds/posts/default/-/Berita?alt=json-in-script&amp;max-results=5&amp;callback=showLabelPosts"></script>
+
+          <script src="https://smpn6tpi.github.io/assets/js/aside-kegiatan-terbaru.js"></script>
+
+          <h3>Kegiatan</h3>
+
+          <ul id="kegiatan-terbaru-aside"></ul>
+
+          <script type="text/javascript" src="/feeds/posts/default/-/Kegiatan?alt=json-in-script&amp;max-results=5&amp;callback=showLabelPosts"></script>
+        </aside>
+      </div>
+      <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ccc;" />
+
+      <section id="kontak" style="text-align: center; padding: 20px; background-color: #dee2e6; border-radius: 8px;">
+        <h2>Kontak</h2>
+        <div class="map-container">
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.323470464044!2d104.4614905740358!3d0.9024066628526184!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31d97299604cb313%3A0x248ea08d993ab5cf!2sSMP%20Negeri%206%20Tanjungpinang!5e0!3m2!1sen!2sid!4v1689396508812!5m2!1sen!2sid" width="100%" height="350" style="border: 0; border-radius: 8px;" allowfullscreen="" loading="lazy">
+          </iframe>
+        </div>
+        <p>
+          Jl. Arif Rahman Hakim No. 2,<br />
+          Kel. Tanjung Ayun Sakti,<br />
+          Kec. Bukit Bestari,<br />
+          Kota Tanjungpinang,<br />
+          Kepulauan Riau,<br />
+          29124
+        </p>
+        <p>Email: admin[at]smpn6tpi.sch.id</p>
+        <p><a href="https://www.maths.id/p/contact.html" target="_blank">Developed by Admin maths.id</a></p>
+        <div class="social-links">
+          <a href="https://www.facebook.com/smpnegeri6tanjungpinang/" target="_blank" title="Facebook">
+            <img src="https://smpn6tpi.github.io/assets/gambar/facebook.png" width="32" />
+          </a>
+          <a href="https://www.instagram.com/smpn6_tanjungpinang" target="_blank" title="Instagram">
+            <img src="https://smpn6tpi.github.io/assets/gambar/instagram.png" width="32" />
+          </a>
+          <a href="https://www.youtube.com/@SMPNegeri6Tanjungpinang" target="_blank" title="YouTube">
+            <img src="https://smpn6tpi.github.io/assets/gambar/youtube.png" width="32" />
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <div id="footer">
+      <footer id="credit-footer"></footer>
+    </div>
+
+    <script src="https://smpn6tpi.github.io/assets/js/komponen.js"></script>
+    <script src="https://smpn6tpi.github.io/assets/js/main.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        window.onload = function() {
+          document.getElementById("preloader").style.display = "none";
+        };
+      });
+    </script>
+  </body>
+</html>

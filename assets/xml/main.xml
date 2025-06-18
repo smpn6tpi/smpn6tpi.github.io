@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+
+<head>
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'/>
+<b:include data='blog' name='all-head-content'/>
+
+<title>
+<b:if cond='data:blog.pageType == &quot;index&quot;'>
+<data:blog.pageTitle/>
+<b:else/>
+<b:if cond='data:blog.pageType != &quot;error_page&quot;'>
+<b:if cond='data:blog.pageType == &quot;archive&quot;'>
+Arsip <data:blog.pageName/>
+<b:else/>
+<data:blog.pageName/>
+</b:if>
+<b:else/>
+Tidak Ada Konten
+</b:if>
+</b:if>
+</title>
+
+<b:skin><![CDATA[
+.blog-feeds,
+.post-footer {display: none;}
+#preloader {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: #ffffff;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+]]></b:skin>
+<link href='https://apps.smpn6tpi.sch.id/blogger/main.css' rel='stylesheet'/>
+<b:if cond='data:blog.pageType == &quot;item&quot; OR data:blog.pageType == &quot;static_page&quot;'>
+<style>
+.blog-pager {display: none;}
+</style>
+</b:if>
+</head>
+
+<body>
+<b:section class='header' id='header' maxwidgets='' showaddelement='yes'></b:section>
+
+<main>
+<b:section class='beranda-atas' cond='data:blog.url == data:blog.homepageUrl' id='beranda-atas' maxwidgets='' showaddelement='yes'></b:section>
+<b:section class='beranda-pengumuman' cond='data:blog.url == data:blog.homepageUrl' id='beranda-pengumuman' maxwidgets='' showaddelement='yes'></b:section>
+
+<div class='single-post-layout'>
+    <article class='post-main-content'>
+    <b:if cond='data:blog.url == data:blog.homepageUrl'> 
+        <h2>Terbaru</h2>
+    </b:if>
+        <b:section class='post-single' id='post-single' preferred='yes' showaddelement='no'>
+            <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='1'></b:widget>
+        </b:section>
+    </article>
+
+    <aside class='post-sidebar'>
+        <b:section class='aside-beranda' cond='data:blog.url == data:blog.homepageUrl' id='aside-beranda' maxwidgets='' showaddelement='yes'>
+            <b:widget id='PopularPosts1' locked='false' title='Popular Posts' type='PopularPosts' version='1'>
+                <b:widget-settings>
+                    <b:widget-setting name='numItemsToShow'>10</b:widget-setting>
+                    <b:widget-setting name='showThumbnails'>false</b:widget-setting>
+                    <b:widget-setting name='showSnippets'>false</b:widget-setting>
+                    <b:widget-setting name='timeRange'>LAST_MONTH</b:widget-setting>
+                </b:widget-settings>
+                <b:includable id='main'>
+                    <h3 class='title'>Sering Dikunjungi</h3>
+                    <b:if cond='data:posts'>
+                        <ul class='popular-posts-list'>
+                            <b:loop values='data:posts' var='post'>
+                            <li>
+                                <a expr:href='data:post.href'>
+                                    <data:post.title/>
+                                </a>
+                            </li>
+                            </b:loop>
+                        </ul>
+                    <b:else/>
+                        <p>Tidak ada postingan populer saat ini.</p>
+                    </b:if>
+                </b:includable>
+            </b:widget>
+        </b:section>
+        <b:section class='post-aside' cond='data:blog.url != data:blog.homepageUrl' id='post-aside' maxwidgets='' showaddelement='yes'></b:section>
+    </aside>
+</div>
+
+<hr style='margin: 40px 0; border: 0; border-top: 1px solid #ccc;'/>
+
+<b:section class='post-list-beranda' cond='data:blog.url == data:blog.homepageUrl' id='post-list-beranda' maxwidgets='' showaddelement='yes'></b:section>
+<b:section class='beranda-galeri' cond='data:blog.url == data:blog.homepageUrl' id='beranda-galeri' maxwidgets='' showaddelement='yes'></b:section>
+<b:section class='kontak' id='kontak' maxwidgets='' showaddelement='yes'></b:section>
+</main>
+
+<b:section class='footer' id='footer' maxwidgets='' showaddelement='yes'></b:section>
+<script src='https://apps.smpn6tpi.sch.id/assets/js/main.js'/>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+window.onload = function() {
+document.getElementById('preloader').style.display = 'none';
+}
+});
+</script>
+</body>
+</html>
