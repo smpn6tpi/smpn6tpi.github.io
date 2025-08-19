@@ -1,1 +1,1 @@
-# smpn6tpi.github.io
+Versi static web smpn6tpi.sch.id
