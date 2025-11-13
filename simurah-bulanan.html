@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rekap Absen Bulanan</title>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'/>
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
+<style>
+        /* Container Utama */
+        #app-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        
+        /* Kontrol PIN Sentral */
+        #central-pin-container {
+            padding: 15px;
+            background-color: #eef4f8;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        #centralPinInput {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 6px;
+            transition: border-color 0.3s;
+        }
+        #centralPinInput:focus {
+            border-color: #00448A;
+            outline: none;
+        }
+        #checkPinBtn {
+            background-color: #008000;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #checkPinBtn:hover:not(:disabled) {
+            background-color: #006400;
+        }
+        #centralPinInput:disabled, #checkPinBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Status Messages */
+        .status-message {
+            margin-top: 10px;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        .status-error-2 {
+            background-color: #ffebeb;
+            border: 1px solid #f99;
+            color: #d9534f;
+        }
+        .status-success-2 {
+            background-color: #e6ffe6;
+            border: 1px solid #9f9;
+            color: #008000;
+        }
+        .status-loading-2 {
+            background-color: #f0f8ff;
+            border: 1px solid #cce5ff;
+            color: #00448A;
+        }
+        
+        /* Section Content */
+        #rekap-bulanan-section {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        /* Tombol Aksi */
+        button:not(#checkPinBtn):not(#applyFilter) {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+            color: #777 !important;
+            opacity: 0.7;
+            border-radius: 6px;
+        }
+        button:hover:not(:disabled) {
+            filter: brightness(1.1);
+        }
+        button:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+            color: #777 !important;
+        }
+        
+        #applyFilter {
+            background-color: #FFC107 !important;
+            color: #333 !important;
+            border: 1px solid #FFC107;
+            padding: 8px 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+
+        /* Filter Controls Bulanan */
+        .filter-controls select, .filter-controls button {
+            padding: 8px;
+            border-radius: 6px;
+            margin: 5px;
+        }
+        .filter-controls select {
+            border: 1px solid #ccc;
+        }
+
+        /* Tabel Umum */
+        .rekap-table-bulanan {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .rekap-table-bulanan th {
+            background-color: #00448A;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #003366;
+            font-weight: 600;
+        }
+        .rekap-table-bulanan td {
+            padding: 10px 8px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+        .rekap-table-bulanan tbody tr:nth-child(even) {
+            background-color: #f7f9fb;
+        }
+        .rekap-table-bulanan tbody tr:hover {
+            background-color: #eaf0f5;
+        }
+        .row-header td {
+            background-color: #e6f7ff !important;
+            font-weight: bold;
+            text-align: left !important;
+            color: #00448A;
+        }
+        .absen-count-bulanan {
+            font-weight: bold;
+        }
+        
+        /* Responsiveness (Penting untuk Blogger) */
+        @media (max-width: 600px) {
+            #app-container {
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+                border: none;
+            }
+            .table-responsive {
+                overflow-x: auto;
+            }
+            .rekap-table-bulanan {
+                min-width: 600px; 
+            }
+            #central-pin-container .form-group > div {
+                flex-direction: column;
+            }
+            #checkPinBtn {
+                width: 100%;
+                margin-top: 5px;
+            }
+            .filter-controls {
+                display: flex;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div id="app-container">
+        
+        <!-- BLOK PIN SENTRAL (WAJIB ADA DI KEDUA FILE) -->
+        <div id="central-pin-container">
+            <div class="form-group" style="margin: 0 auto; max-width: 440px;">
+                <label for="centralPinInput">PIN:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="centralPinInput" placeholder="Masukkan PIN 4 digit" required maxlength="4">
+                    <button type="button" id="checkPinBtn">Cek PIN</button>
+                </div>
+                <p id="central-pin-status" class="status-message"></p>
+            </div>
+        </div>
+        <!-- AKHIR BLOK PIN SENTRAL -->
+        
+        <!-- HANYA TAB REKAP BULANAN -->
+        <div id="rekap-bulanan-section">
+            <div id="rekap-bulanan-content" style="display: block;"> 
+                <p id="current-mode-rekap-bulanan" style="text-align: center; font-weight: bold; margin-bottom: 10px; color: #00448A;">Pilih Bulan dan Tahun:</p>
+
+                <div class="filter-controls" style="text-align: center; margin-bottom: 20px;">
+                    <select id="filterMonth"></select>
+                    <select id="filterYear"></select>
+                    <button id="applyFilter" disabled>Terapkan Filter</button>
+                </div>
+
+                <p id="loading-status-rekap-bulanan" class="status-message">Silakan verifikasi PIN terlebih dahulu.</p>
+                
+                <div id="chart-area" style="width: 100%; height: 350px; margin-bottom: 20px;"></div>
+
+                <div id="rekap-table-container-rekap-bulanan" class="table-responsive"></div>
+            </div>
+        </div>
+        
+    </div>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+    // =========================================================
+    // KONFIGURASI GLOBAL
+    // =========================================================
+    // GANTI DENGAN URL APPS SCRIPT ANDA
+    const SCRIPT_URL_SIMURAH = 'https://script.google.com/macros/s/AKfycbx6y5crSV_pD8jR8m0up9883T0R-2sT7hK5A114SazK_a26TzySVZ0Zsifki9bm5j-MrA/exec';
+    const PIN_KEY = 'dailyAbsensiPin'; // Kunci localStorage untuk PIN
+    const today = new Date(); 
+    let googleChartLoaded = false; 
+    let currentDataBulanan = null; 
+
+    // STATE GLOBAL PIN
+    let isPinValid = false; 
+
+    // Elemen UI
+    const filterMonthSelect = document.getElementById('filterMonth');
+    const filterYearSelect = document.getElementById('filterYear');
+    const applyFilterBtn = document.getElementById('applyFilter');
+
+
+    // =========================================================
+    // FUNGSI UTILITY GLOBAL 
+    // =========================================================
+
+    /**
+     * Fungsi untuk memperbarui status pesan di UI
+     * @param {string} elementId ID elemen status
+     * @param {string} message Pesan yang ditampilkan
+     * @param {'blue'|'success'|'error'|'warning'} type Jenis pesan
+     */
+    function updateStatus(elementId, message, type = 'blue') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        let className = 'status-loading-2'; 
+        switch(type) {
+            case 'error': className = 'status-error-2'; break;
+            case 'success': className = 'status-success-2'; break;
+            case 'warning': className = 'status-loading-2'; break; 
+            default: className = 'status-loading-2'; break;
+        }
+
+        element.textContent = message;
+        element.className = className;
+        element.style.display = 'block';
+        
+        // Atur warna teks manual untuk status PIN sentral
+        if (elementId === 'central-pin-status') {
+             element.style.color = type === 'error' ? '#d9534f' : type === 'success' ? '#008000' : '#00448A';
+        }
+        
+        // Sembunyikan pesan loading jika status sukses pada Rekap Bulanan
+        if(elementId === 'loading-status-rekap-bulanan' && type === 'success') {
+             element.style.display = 'none';
+        }
+    }
+
+
+    // =========================================================
+    // LOGIKA PIN SENTRAL DAN DISABLED APP
+    // =========================================================
+
+    /**
+     * Fungsi untuk mengaktifkan/menonaktifkan seluruh aplikasi (kecuali PIN controls)
+     * @param {boolean} enable true untuk mengaktifkan, false untuk menonaktifkan
+     */
+    function toggleAppDisabledState(enable) {
+        isPinValid = enable;
+        
+        // Nonaktifkan/Aktifkan elemen filter
+        applyFilterBtn.disabled = !enable;
+        filterMonthSelect.disabled = !enable;
+        filterYearSelect.disabled = !enable;
+        
+        // Atur tombol PIN dan statusnya
+        const pinInput = document.getElementById('centralPinInput');
+        const checkBtn = document.getElementById('checkPinBtn');
+        
+        pinInput.disabled = enable; 
+        checkBtn.disabled = enable; 
+        document.getElementById('central-pin-container').style.display = 'none';
+        
+        // Jika PIN berhasil, langsung muat data
+        if (enable) {
+            loadDataBulanan();
+        } else {
+             pinInput.disabled = false; 
+             checkBtn.disabled = false;
+             document.getElementById('central-pin-container').style.display = 'block';
+             updateStatus('loading-status-rekap-bulanan', "PIN tidak valid. Silakan verifikasi PIN untuk memuat data.", 'error');
+        }
+    }
+
+    /**
+     * Fungsi untuk memuat PIN dari localStorage dan memverifikasinya otomatis
+     */
+    function loadPin() {
+        const pinInput = document.getElementById('centralPinInput');
+        const savedPin = localStorage.getItem(PIN_KEY);
+        
+        updateStatus('central-pin-status', "Silakan masukkan PIN Harian (4 digit)", 'blue');
+        toggleAppDisabledState(false); 
+        
+        if (savedPin && savedPin.length === 4) {
+            pinInput.value = savedPin;
+            checkCentralPin(savedPin, true); 
+        } else {
+             pinInput.value = '';
+        }
+    }
+
+    /**
+     * Fungsi untuk memverifikasi PIN sentral
+     * @param {string} pin PIN yang akan diverifikasi
+     * @param {boolean} isAutoLoad true jika dipanggil otomatis dari localStorage
+     */
+    async function checkCentralPin(pin, isAutoLoad = false) {
+        const pinInput = document.getElementById('centralPinInput');
+        const checkBtn = document.getElementById('checkPinBtn');
+        
+        const currentPin = pin || pinInput.value.trim(); 
+
+        if (currentPin.length !== 4) {
+            updateStatus('central-pin-status', "PIN harus 4 digit.", 'error');
+            toggleAppDisabledState(false);
+            return;
+        }
+
+        if (!isAutoLoad) {
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Memverifikasi...';
+        }
+        updateStatus('central-pin-status', "Memverifikasi PIN...", 'blue');
+
+        const verifyParams = new URLSearchParams();
+        verifyParams.append('mode', 'verifyPin');
+        verifyParams.append('pin', currentPin);
+
+        try {
+            const response = await fetch(SCRIPT_URL_SIMURAH, {
+                method: 'POST',
+                body: verifyParams
+            });
+            const result = await response.json();
+
+            if (result.result === 'success') {
+                localStorage.setItem(PIN_KEY, currentPin);
+                updateStatus('central-pin-status', `PIN Valid! Aplikasi diaktifkan.`, 'success');
+                toggleAppDisabledState(true);
+            } else {
+                localStorage.removeItem(PIN_KEY);
+                pinInput.value = ''; 
+                updateStatus('central-pin-status', `Verifikasi Gagal: ${result.message}`, 'error');
+                toggleAppDisabledState(false);
+            }
+        } catch (error) {
+            updateStatus('central-pin-status', "Koneksi gagal. Cek jaringan Anda.", 'error');
+            toggleAppDisabledState(false);
+        } finally {
+            if (!isAutoLoad) {
+                checkBtn.disabled = false;
+                checkBtn.textContent = 'Cek PIN';
+            }
+        }
+    }
+
+
+    // =========================================================
+    // FUNGSI REKAP BULANAN
+    // =========================================================
+
+    // --- CHART GOOGLE CHARTS ---
+    function drawChart(chartData) {
+        const chartArea = document.getElementById('chart-area');
+
+        if (!googleChartLoaded) {
+            chartArea.innerHTML = '<p style="text-align: center;">Library chart belum dimuat.</p>';
+            return;
+        }
+
+        let dataArray = [['Kelas', 'Ijin (I)', 'Sakit (S)', 'Tanpa Ket. (A)', 'Bolos (B)']];
+        
+        for (const kelas in chartData) {
+            const counts = chartData[kelas];
+            dataArray.push([kelas, counts.I, counts.S, counts.TK, counts.B]);
+        }
+        
+        const data = google.visualization.arrayToDataTable(dataArray);
+
+        const options = {
+            title: 'Rekap Absensi Bulanan per Kelas (Jumlah Kasus)',
+            isStacked: true,
+            hAxis: { title: 'Jumlah Kasus Absen' },
+            vAxis: { title: 'Kelas' },
+            legend: { position: 'top' },
+            colors: ['orange', 'red', 'darkred', 'purple'] 
+        };
+
+        chartArea.innerHTML = ''; 
+        const chart = new google.visualization.BarChart(chartArea);
+        chart.draw(data, options);
+    }
+
+    // --- DISPLAY DATA BULANAN ---
+    function displayDataBulanan(data) {
+        const tableContainer = document.getElementById('rekap-table-container-rekap-bulanan');
+        const currentModeText = document.getElementById('current-mode-rekap-bulanan');
+        const chartArea = document.getElementById('chart-area');
+        const loadingStatusId = 'loading-status-rekap-bulanan';
+
+        tableContainer.innerHTML = '';
+        chartArea.innerHTML = '';
+        
+        currentDataBulanan = data; 
+
+        if (data.status !== 'success') {
+            updateStatus(loadingStatusId, `Gagal memuat data: ${data.message || 'Respons tidak valid.'}`, 'error');
+            chartArea.innerHTML = '<p style="text-align: center;">Grafik tidak dapat dimuat.</p>';
+            return;
+        }
+        
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const monthName = monthNames[parseInt(filterMonthSelect.value) - 1];
+        
+        currentModeText.innerHTML = `REKAP ${monthName.toUpperCase()} ${filterYearSelect.value}`;
+        
+        updateStatus(loadingStatusId, `${data.message || 'Data berhasil dimuat.'}`, 'success'); 
+        
+        if (!data.data || data.data.length === 0) {
+            tableContainer.innerHTML = '<p style="text-align: center; margin-top: 20px;">Tidak ada data absensi tercatat untuk bulan yang dipilih.</p>';
+            chartArea.innerHTML = '<p style="text-align: center;">Tidak ada data untuk grafik.</p>';
+            return;
+        }
+        
+        // Gambar Chart
+        if (googleChartLoaded && data.chartData) {
+            drawChart(data.chartData);
+        } else {
+            chartArea.innerHTML = '<p style="text-align: center;">Memuat Library Google Charts...</p>';
+        }
+        
+        // Tampilan Tabel
+        let tableHTML = `
+            <table class="rekap-table-bulanan">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Kelas</th>
+                        <th rowspan="2">Nama Murid</th>
+                        <th colspan="4">Detail Absensi (Frekuensi)</th>
+                        <th rowspan="2">Total Absen</th>
+                    </tr>
+                    <tr>
+                        <th>Ijin (I)</th>
+                        <th>Sakit (S)</th>
+                        <th>Tanpa Ket. (A)</th>
+                        <th>Bolos (B)</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        let currentClass = '';
+        data.data.forEach(item => {
+            if (item.kelas !== currentClass) {
+                tableHTML += `<tr class="row-header"><td colspan="7">Kelas: ${item.kelas}</td></tr>`;
+                currentClass = item.kelas;
+            }
+            
+            tableHTML += `
+                <tr>
+                    <td>${item.kelas}</td>
+                    <td style="text-align: left;">${item.nama}</td>
+                    <td>${item.I}</td>
+                    <td>${item.S}</td>
+                    <td>${item.TK}</td>
+                    <td>${item.B}</td>
+                    <td class="absen-count-bulanan">${item.totalAbsen}</td>
+                </tr>
+            `;
+        });
+        tableHTML += `</tbody></table>`;
+        tableContainer.innerHTML = `<div class="table-responsive">${tableHTML}</div>`;
+    }
+
+    // --- LOAD HANDLERS BULANAN ---
+    function loadDataBulanan() {
+        const tableContainer = document.getElementById('rekap-table-container-rekap-bulanan');
+        const chartArea = document.getElementById('chart-area');
+        const loadingStatusId = 'loading-status-rekap-bulanan';
+
+        if (!isPinValid) {
+            updateStatus(loadingStatusId, "PIN tidak valid. Silakan verifikasi PIN untuk memuat data.", 'error');
+            return;
+        }
+
+        updateStatus(loadingStatusId, "Memuat data bulanan...", 'blue');
+        tableContainer.innerHTML = '';
+        chartArea.innerHTML = '';
+        
+        const month = filterMonthSelect.value;
+        const year = filterYearSelect.value;
+        
+        const fetchUrl = `${SCRIPT_URL_SIMURAH}?mode=rekapBulanan&bulan=${month}&tahun=${year}`;
+        
+        fetch(fetchUrl)
+            .then(res => res.json())
+            .then(data => {
+                displayDataBulanan(data);
+            })
+            .catch(error => {
+                updateStatus(loadingStatusId, "Gagal memuat data. Periksa jaringan dan URL Apps Script.", 'error');
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // ===========================================
+        // I. SETUP FILTER BULANAN
+        // ===========================================
+
+        function setupFilterControls() {
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            filterMonthSelect.innerHTML = monthNames.map((name, i) => 
+                `<option value="${i + 1}" ${i + 1 === (today.getMonth() + 1) ? 'selected' : ''}>${name}</option>`
+            ).join('');
+            
+            const currentYear = today.getFullYear();
+            filterYearSelect.innerHTML = '';
+            for (let y = currentYear; y >= currentYear - 2; y--) {
+                filterYearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+            }
+        }
+        
+        // Load Google Charts dan tandai flag siap
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(() => { 
+            googleChartLoaded = true; 
+            if (isPinValid && currentDataBulanan && currentDataBulanan.chartData) {
+                drawChart(currentDataBulanan.chartData);
+            }
+        });
+
+        // Event Listener Filter Bulanan
+        applyFilterBtn.addEventListener('click', loadDataBulanan);
+        
+        // Event Listener Cek PIN Sentral
+        const centralPinInput = document.getElementById('centralPinInput');
+        const checkPinBtn = document.getElementById('checkPinBtn');
+        checkPinBtn.addEventListener('click', function() {
+            checkCentralPin(centralPinInput.value);
+        });
+        
+        centralPinInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); 
+                checkCentralPin(centralPinInput.value);
+            }
+        });
+
+        // ===========================================
+        // II. INISIALISASI
+        // ===========================================
+        
+        setupFilterControls();
+        loadPin(); // Memuat PIN dari localStorage dan memverifikasi
+        toggleAppDisabledState(false); 
+    });
+    </script>
+</body>
+</html>
