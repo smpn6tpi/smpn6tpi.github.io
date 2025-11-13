@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Data Murid</title>
+<meta content='width=device-width, initial-scale=1.0' name='viewport'/>
+<meta content='text/html; charset=UTF-8' http-equiv='Content-Type'/>
+<style>
+  /* --- Style Sederhana untuk Tampilan --- */
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+  h2, h3 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+  .form-group { margin-bottom: 15px; }
+  
+  /* Input Fields (Text, Number, Select) */
+  label { display: block; margin-bottom: 5px; font-weight: bold; }
+  input[type="text"], input[type="number"], select { 
+    width: 100%; 
+    padding: 8px; 
+    box-sizing: border-box; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+  }
+  
+  /* Tombol Utama (Tambah Murid) */
+  button { 
+    padding: 10px 15px; 
+    background-color: #007bff; 
+    color: white; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    margin-top: 10px;
+    width: 100%; /* Dibuat lebar penuh */
+  }
+  button:hover { background-color: #0056b3; }
+  
+  /* Tombol Pesan (Success/Error) */
+  .message { padding: 10px; margin-top: 15px; border-radius: 4px; display: none; }
+  .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+  .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+  
+  /* Style Tabel */
+  #dataTable { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  #dataTable th, #dataTable td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+  #dataTable th { background-color: #f2f2f2; }
+  
+  /* Tombol Aksi Tabel (Hapus) */
+  .delete-btn { 
+    background-color: #dc3545; 
+    color: white; 
+    border: none; 
+    padding: 5px 10px; /* Ukuran lebih kecil karena ada di dalam tabel */
+    border-radius: 3px; 
+    cursor: pointer; 
+    width: auto; /* Dibuat auto agar tidak melebar di dalam cell */
+    margin: 0;
+  }
+  
+  /* Tombol Update Data Kelas (.update-btn) - Dibuat Mirip Tombol Utama */
+  .update-btn { 
+    background-color: #ffc107; 
+    color: #333; 
+    border: none; 
+    padding: 10px 15px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    margin-top: 10px; 
+    width: 100%; /* Harus lebar penuh */
+  }
+  .update-btn:hover { background-color: #e0a800; }
+
+  #mainContent input:disabled, 
+#mainContent select:disabled,
+#mainContent button:disabled {
+    /* Membuat warna abu-abu agar terlihat non-aktif */
+    background-color: #f0f0f0; 
+    color: #888;
+    cursor: not-allowed; /* Mengubah kursor menjadi tanda "dilarang" */
+    border: 1px dashed #ccc;
+    opacity: 0.7; /* Sedikit transparan */
+}
+</style>
+</head>
+
+<body>
+<div id="appContainer">
+  <h2>Pengelolaan Data Murid</h2>
+
+  <div class="form-group">
+    <label for="globalPinInput">PIN</label>
+    <input type="text" id="globalPinInput" placeholder="Masukkan PIN Akses" required>
+  </div>
+  <button id="verifyPinButton" onclick="verifyPin()">Verifikasi PIN dan Mulai Sesi</button>
+  <div id="pinStatusMessage" class="message"></div>
+  
+  <hr>
+  
+  <div id="mainContent"> 
+      
+      <div class="form-group">
+          <label for="kelasSelect">Pilih Kelas</label>
+          <select id="kelasSelect" onchange="loadDataByClass(this.value)" required disabled>
+            <option value="">-- Muat & Pilih Kelas --</option>
+          </select>
+      </div>
+      
+      <hr>
+      
+      <h3>Tambah Murid ke Kelas yang Dipilih</h3>
+      <div class="form-group">
+        <label for="namaInput">Nama Murid</label>
+        <input type="text" id="namaInput" placeholder="Masukkan Nama Lengkap" required disabled>
+      </div>
+      <button onclick="tambahData()" disabled>Tambah Murid</button>
+      <div id="tambahMessage" class="message"></div>
+
+      <hr>
+
+      <div id="dataViewContainer">
+        <h3>Daftar Murid Kelas <span id="selectedClassDisplay">...</span></h3>
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Kelas</th>
+              <th>Nama</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody">
+            <tr><td colspan="4">Verifikasi PIN di atas untuk memuat data.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="filterMessage" class="message"></div>
+      
+      <hr>
+      
+      <h2>Update Total Murid Kelas <span id="kelasUpdateDisplay">...</span></h2>
+      <div id="kelasUpdateMessage" class="message"></div>
+      
+      <div id="dataKelasForm">
+        Verifikasi PIN dahulu, lalu pilih Kelas untuk menampilkan form update Total Murid.
+      </div>
+  </div>
+  
+</div>
+
+<script>
+  // Ganti dengan URL deployment Web App Anda
+  const APP_URL_MURID_KELAS = "https://script.google.com/macros/s/AKfycbxKZb0_luWbi_hyK0J-z2nULpxEQBJ3nLX0BjcZdbu9TKDP9cK1YeSmzDYCiDgOPerS0A/exec"; 
+  const SHEET_MURID = "DataMurid";
+  const SHEET_KELAS = "DataKelas";
+
+  // --- FUNGSI UTILITY BARU: Mengatur Status Disabled ---
+  function setFormControlsDisabled(isDisabled) {
+      // 1. Kontrol Input dan Select di bagian atas
+      document.getElementById('kelasSelect').disabled = isDisabled;
+      document.getElementById('namaInput').disabled = isDisabled;
+      
+      // 2. Tombol Aksi Utama
+      // Query untuk Tombol Tambah Murid
+      document.querySelector('#mainContent button:not(.delete-btn):not(.update-btn)').disabled = isDisabled;
+      
+      // 3. Tombol Hapus dan Update (Perlu diatur lagi setelah data dimuat)
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.disabled = isDisabled;
+      });
+      document.querySelectorAll('.update-btn').forEach(btn => {
+          btn.disabled = isDisabled;
+      });
+
+      // 4. Input Total Murid (jika sudah ada)
+      const totalMuridInput = document.querySelector('#dataKelasForm input[type="number"]');
+      if (totalMuridInput) {
+          totalMuridInput.disabled = isDisabled;
+      }
+  }
+
+  // --- FUNGSI UTILITY BARU: Mengambil PIN yang sudah diverifikasi dari sessionStorage ---
+  function getVerifiedPin() {
+      const pin = sessionStorage.getItem('verifiedPIN');
+      if (!pin) {
+          // Jika PIN hilang, nonaktifkan kembali form dan minta verifikasi
+          setFormControlsDisabled(true); 
+          document.getElementById('globalPinInput').style.display = 'block'; 
+          document.getElementById('verifyPinButton').style.display = 'block'; 
+          displayMessage('pinStatusMessage', 'Sesi PIN hilang. Mohon masukkan dan verifikasi ulang PIN.', false);
+          return null;
+      }
+      return pin;
+  }
+
+  // --- FUNGSI BARU: Verifikasi PIN ke Apps Script (action=checkPin) ---
+  async function verifyPin() {
+      const pin = document.getElementById('globalPinInput').value.trim();
+      const verifyBtn = document.getElementById('verifyPinButton');
+      
+      if (!pin) {
+          displayMessage('pinStatusMessage', 'PIN harus diisi.', false);
+          setFormControlsDisabled(true); 
+          return;
+      }
+      
+      displayMessage('pinStatusMessage', 'Memverifikasi...', false);
+      verifyBtn.disabled = true;
+      setFormControlsDisabled(true); // Nonaktifkan saat proses verifikasi
+
+      try {
+          const response = await fetch(`${APP_URL_MURID_KELAS}?action=checkPin&PIN=${encodeURIComponent(pin)}`);
+          const result = await response.json();
+
+          if (result.success) {
+              // PIN Valid: Simpan ke sessionStorage
+              sessionStorage.setItem('verifiedPIN', pin); 
+              
+              displayMessage('pinStatusMessage', 'PIN Valid! Semua operasi diaktifkan.', true);
+              
+              // AKTIFKAN SEMUA KONTROL
+              setFormControlsDisabled(false); 
+              
+              document.getElementById('globalPinInput').style.display = 'block'; 
+              verifyBtn.style.display = 'block';
+
+              document.getElementById('globalPinInput').disabled = 'true'; 
+              verifyBtn.disabled = 'true'; 
+              
+              loadClassDropdown(); 
+
+          } else {
+              displayMessage('pinStatusMessage', result.message, false);
+              sessionStorage.removeItem('verifiedPIN');
+              setFormControlsDisabled(true); // Tetap dinonaktifkan jika gagal
+          }
+
+      } catch (e) {
+          displayMessage('pinStatusMessage', 'Kesalahan koneksi atau server saat verifikasi PIN.', false);
+      } finally {
+          verifyBtn.disabled = false;
+          if (sessionStorage.getItem('verifiedPIN')) {
+             verifyBtn.style.display = 'block';
+          } else {
+             verifyBtn.style.display = 'block';
+          }
+      }
+  }
+
+  // --- FUNGSI UTILITY: displayMessage (Tidak diubah) ---
+  function displayMessage(id, message, isSuccess) {
+    const el = document.getElementById(id);
+    el.innerText = message;
+    el.className = `message ${isSuccess ? 'success' : 'error'}`;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 5000);
+  }
+
+  // --- FUNGSI UTAMA: Muat Kedua Tabel (Murid & Kelas) berdasarkan Kelas yang Dipilih ---
+  function loadDataByClass(kelasFilterValue) {
+      loadMuridData(kelasFilterValue); 
+      loadDataKelas(kelasFilterValue); 
+  }
+  
+  // --- FUNGSI PENGONTROL: loadClassDropdown (Diperbarui untuk status disabled) ---
+  async function loadClassDropdown() {
+    const selectElement = document.getElementById('kelasSelect');
+    const selectedValue = selectElement.value;
+    
+    // Periksa apakah PIN sudah diverifikasi
+    const isPinValid = !!sessionStorage.getItem('verifiedPIN');
+
+    // Kontrol disabled harus sesuai dengan status PIN
+    selectElement.disabled = !isPinValid;
+
+    // ... (Logika memuat data kelas unik) ...
+    selectElement.innerHTML = '<option value="">-- Memuat Kelas... --</option>';
+
+    try {
+      const resMurid = await fetch(`${APP_URL_MURID_KELAS}?action=vars&sheetName=${SHEET_MURID}`);
+      const dataMurid = await resMurid.json();
+      
+      if (dataMurid.error) {
+        selectElement.innerHTML = '<option value="">Sheet Murid Error</option>';
+        selectElement.disabled = true; 
+        return;
+      }
+      
+      const uniqueClasses = new Set(dataMurid.map(item => item.Kelas).filter(kelas => kelas && kelas.trim() !== ''));
+      
+      selectElement.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+      uniqueClasses.forEach(kelas => {
+        const option = document.createElement('option');
+        option.value = kelas;
+        option.textContent = kelas;
+        selectElement.appendChild(option);
+      });
+      
+      // Kembalikan nilai yang dipilih dan muat ulang kedua tabel jika ada
+      if (selectedValue && uniqueClasses.has(selectedValue)) {
+          selectElement.value = selectedValue;
+          loadDataByClass(selectedValue);
+      } else {
+          document.getElementById('dataBody').innerHTML = `<tr><td colspan="4">${isPinValid ? 'Silakan pilih Kelas dari dropdown di atas.' : 'Verifikasi PIN untuk memuat data.'}</td></tr>`;
+          document.getElementById('dataKelasForm').innerHTML = 'Pilih Kelas untuk menampilkan data Total Murid.'; 
+          document.getElementById('selectedClassDisplay').textContent = '...';
+          document.getElementById('kelasUpdateDisplay').textContent = '...';
+      }
+
+    } catch (e) {
+      console.error("Gagal memuat kelas unik:", e);
+      selectElement.innerHTML = '<option value="">Gagal memuat Kelas</option>';
+    }
+  }
+
+  // --- FUNGSI PENGONTROL: loadDataKelas (Diperbarui untuk status disabled tombol update) ---
+  async function loadDataKelas(kelasFilterValue) {
+    const dataKelasForm = document.getElementById('dataKelasForm');
+    const displayElement = document.getElementById('kelasUpdateDisplay');
+    const isPinValid = !!sessionStorage.getItem('verifiedPIN');
+
+    displayElement.textContent = kelasFilterValue ? kelasFilterValue : '...';
+    dataKelasForm.innerHTML = 'Memuat data kelas...';
+    
+    if (!kelasFilterValue) {
+        dataKelasForm.innerHTML = 'Pilih Kelas untuk menampilkan data Total Murid.';
+        return; 
+    }
+    
+    let url = `${APP_URL_MURID_KELAS}?action=vars&sheetName=${SHEET_KELAS}&filterKey=Kelas&filterValue=${encodeURIComponent(kelasFilterValue)}`;
+
+    try {
+        // ... (Logika fetch dan penentuan initialTotalMurid) ...
+        const resKelas = await fetch(url);
+        const dataKelas = await resKelas.json();
+
+        if (dataKelas.error) {
+            dataKelasForm.innerHTML = `Terjadi kesalahan: ${dataKelas.error}`;
+            return;
+        } 
+        
+        let initialTotalMurid = '0';
+        const isDataFound = dataKelas.length > 0;
+        if (isDataFound) {
+            const item = dataKelas[0];
+            initialTotalMurid = item.TotalMurid && item.TotalMurid.trim() !== '' ? item.TotalMurid : '0';
+        }
+
+        const escapedClass = kelasFilterValue.replace(/\s/g, '_');
+        
+        dataKelasForm.innerHTML = `
+            <div class="form-group">
+                <label for="input-${escapedClass}">Total Murid</label>
+                <input 
+                    type="number" 
+                    min="0" 
+                    value="${initialTotalMurid}" 
+                    id="input-${escapedClass}" 
+                    placeholder="Masukkan jumlah total murid"
+                    ${!isPinValid ? 'disabled' : ''} >
+            </div>
+            <button 
+                class="update-btn" 
+                onclick="updateDataKelas('${kelasFilterValue}')"
+                ${!isPinValid ? 'disabled' : ''} >
+                ${isDataFound ? 'Update' : 'Insert (Baru)'}
+            </button>
+        `;
+
+    } catch (e) {
+        dataKelasForm.innerHTML = 'Kesalahan jaringan/server saat memuat data kelas.';
+    }
+  }
+
+  // --- FUNGSI POST: updateDataKelas (Diperbarui untuk menggunakan getVerifiedPin) ---
+  async function updateDataKelas(kelasToUpdate) {
+    const inputId = `input-${kelasToUpdate.replace(/\s/g, '_')}`;
+    const newTotal = document.getElementById(inputId).value.trim();
+    
+    if (!newTotal || isNaN(newTotal)) {
+        displayMessage('kelasUpdateMessage', `Total Murid untuk ${kelasToUpdate} harus berupa angka.`, false);
+        return;
+    }
+
+    // Menggunakan fungsi terpusat
+    const pin = getVerifiedPin();
+    if (!pin) {
+        displayMessage('kelasUpdateMessage', 'Operasi dibatalkan. PIN Sesi hilang.', false);
+        return;
+    }
+
+    const payload = {
+        PIN: pin, // Menggunakan PIN dari sesi
+        duplicateKeys: ["Kelas"],        
+        updateKeyOnDuplicate: "TotalMurid", 
+        items: [{
+            "Kelas": kelasToUpdate,
+            "TotalMurid": newTotal
+        }]
+    };
+    
+    // ... (Logika fetch POST) ...
+    try {
+        const response = await fetch(`${APP_URL_MURID_KELAS}?action=batchSubmit&sheetName=${SHEET_KELAS}`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            displayMessage('kelasUpdateMessage', `Berhasil mengupdate/insert ${kelasToUpdate}: ${result.message}`, true);
+            loadDataByClass(kelasToUpdate); 
+        } else {
+            displayMessage('kelasUpdateMessage', `Gagal Update/Insert Kelas: ${result.message}`, false);
+        }
+
+    } catch (e) {
+        displayMessage('kelasUpdateMessage', 'Terjadi kesalahan jaringan atau server saat update/insert.', false);
+    }
+  }
+  
+  // --- FUNGSI POST: tambahData (Diperbarui untuk menggunakan getVerifiedPin) ---
+  async function tambahData() {
+    const kelas = document.getElementById('kelasSelect').value.trim(); 
+    const nama = document.getElementById('namaInput').value.trim();
+
+    // Menggunakan fungsi terpusat
+    const pin = getVerifiedPin();
+
+    if (!pin) {
+        displayMessage('tambahMessage', 'Operasi dibatalkan. PIN Sesi hilang.', false);
+        return;
+    }
+    // ... (Logika validasi kelas/nama) ...
+    if (!kelas) {
+      displayMessage('tambahMessage', 'Pilih Kelas dari dropdown terlebih dahulu.', false);
+      return;
+    }
+    if (!nama) {
+      displayMessage('tambahMessage', 'Nama Murid harus diisi.', false);
+      return;
+    }
+
+    const payload = {
+      PIN: pin, // Menggunakan PIN dari sesi
+      duplicateKeys: ["Kelas", "Nama"], 
+      items: [{
+        "Kelas": kelas,
+        "Nama": nama
+      }]
+    };
+
+    // ... (Logika fetch POST) ...
+    try {
+      const response = await fetch(`${APP_URL_MURID_KELAS}?action=batchSubmit&sheetName=${SHEET_MURID}`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        displayMessage('tambahMessage', `Berhasil: ${result.message}`, true);
+        document.getElementById('namaInput').value = '';
+        
+        loadClassDropdown(); 
+        loadDataByClass(document.getElementById('kelasSelect').value); 
+        
+      } else {
+        displayMessage('tambahMessage', `Gagal Tambah Data: ${result.message}`, false);
+      }
+    } catch (e) {
+      displayMessage('tambahMessage', 'Terjadi kesalahan jaringan atau server.', false);
+    }
+  }
+
+  // --- FUNGSI PENGONTROL: loadMuridData (Diperbarui untuk status disabled tombol delete) ---
+  async function loadMuridData(kelasFilterValue) {
+    const tableBody = document.getElementById('dataBody');
+    const displayElement = document.getElementById('selectedClassDisplay');
+    const isPinValid = !!sessionStorage.getItem('verifiedPIN');
+
+    displayElement.textContent = kelasFilterValue ? kelasFilterValue : '...';
+    tableBody.innerHTML = '<tr><td colspan="4">Memuat data...</td></tr>';
+    
+    if (!kelasFilterValue) {
+        tableBody.innerHTML = '<tr><td colspan="4">Silakan pilih Kelas dari dropdown di atas.</td></tr>';
+        return; 
+    }
+    
+    let url = `${APP_URL_MURID_KELAS}?action=vars&sheetName=${SHEET_MURID}&filterKey=Kelas&filterValue=${encodeURIComponent(kelasFilterValue)}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      // ... (Logika error handling) ...
+      if (data.error || data.length === 0) {
+        // ... (Logika tampilan error) ...
+        tableBody.innerHTML = data.error ? `<tr><td colspan="4">${data.error}</td></tr>` : `<tr><td colspan="4">Tidak ada data murid ditemukan untuk Kelas ${kelasFilterValue}.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = ''; 
+      
+      data.forEach((item, index) => {
+        const row = tableBody.insertRow();
+        row.insertCell().textContent = index + 1; 
+        row.insertCell().textContent = item.Kelas;
+        row.insertCell().textContent = item.Nama;
+        
+        const actionCell = row.insertCell();
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Hapus';
+        deleteBtn.className = 'delete-btn';
+        
+        deleteBtn.onclick = () => deleteData(item.Kelas, item.Nama); 
+        
+        // DISABLED TOMBOL DELETE JIKA PIN TIDAK VALID
+        deleteBtn.disabled = !isPinValid;
+        
+        actionCell.appendChild(deleteBtn);
+      });
+
+    } catch (e) {
+      tableBody.innerHTML = '<tr><td colspan="4">Gagal memuat data. Periksa URL Apps Script.</td></tr>';
+    }
+  }
+
+  // --- FUNGSI POST: deleteData (Diperbarui untuk menggunakan getVerifiedPin) ---
+  async function deleteData(kelas, nama) {
+      if (!confirm(`Yakin ingin menghapus murid ${nama} dari kelas ${kelas}?`)) {
+          return;
+      }
+      
+      // Menggunakan fungsi terpusat
+      const pin = getVerifiedPin();
+
+      if (!pin) {
+          displayMessage('filterMessage', 'Penghapusan dibatalkan. PIN Sesi hilang.', false);
+          return;
+      }
+
+      const payload = {
+          PIN: pin, // Menggunakan PIN dari sesi
+          sheetName: SHEET_MURID,
+          keys: {
+              "Kelas": kelas, 
+              "Nama": nama     
+          }
+      };
+      
+      // ... (Logika fetch POST) ...
+      try {
+          const response = await fetch(`${APP_URL_MURID_KELAS}?action=deleteData`, {
+              method: 'POST',
+              body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+          
+          if (result.success) {
+              displayMessage('filterMessage', result.message, true);
+              loadClassDropdown(); 
+              loadDataByClass(document.getElementById('kelasSelect').value); 
+          } else {
+              displayMessage('filterMessage', `Gagal Hapus Data: ${result.message}`, false);
+          }
+
+      } catch (e) {
+          displayMessage('filterMessage', 'Terjadi kesalahan jaringan atau server saat penghapusan.', false);
+      }
+  }
+
+  // --- Muat dan Cek Sesi saat Halaman Dimuat ---
+  document.addEventListener('DOMContentLoaded', () => {
+      // Nonaktifkan semua kontrol secara default
+      setFormControlsDisabled(true); 
+
+      const storedPin = sessionStorage.getItem('verifiedPIN');
+      
+      if (storedPin) {
+          // Jika PIN ada di sesi, coba verifikasi ulang
+          document.getElementById('globalPinInput').value = storedPin;
+          verifyPin(); 
+      } else {
+          // Jika tidak ada, hanya muat dropdown
+          loadClassDropdown(); 
+      }
+  });
+</script>
+</body>
+</html>
