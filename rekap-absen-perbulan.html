@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Absensi Bulanan</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --primary: #4361ee; 
+            --success: #4cc9f0; 
+            --danger: #f72585; 
+            --warning: #ffb703; 
+            --dark: #2b2d42;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+        }
+
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--dark); 
+            line-height: 1.6; 
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+
+        header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h2 { 
+            color: var(--dark); 
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        /* Card System */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+        }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 0; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input, select { 
+            padding: 12px 16px; 
+            border: 2px solid #e9ecef; 
+            border-radius: 10px; 
+            width: 100%; 
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button { 
+            cursor: pointer; 
+            background: var(--primary); 
+            color: #fff; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 10px; 
+            font-weight: 600; 
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover { 
+            filter: brightness(1.1);
+            transform: translateY(-1px); 
+        }
+
+        button:active { transform: translateY(0); }
+        button:disabled { background: #ced4da; cursor: not-allowed; }
+
+        /* Status & Message */
+        .status-msg { 
+            padding: 14px; 
+            border-radius: 10px; 
+            margin-bottom: 24px; 
+            font-weight: 500; 
+            font-size: 0.95rem;
+            display: none; 
+        }
+        .info { background: #e0e7ff; color: #4338ca; display: block; }
+        .success { background: #dcfce7; color: #15803d; display: block; }
+        .error { background: #fee2e2; color: #b91c1c; display: block; }
+
+        /* Table Style */
+        .table-container { 
+            overflow-x: auto; 
+            background: #fff;
+            border-radius: 8px;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.9rem; 
+        }
+
+        th { 
+            background: #f8fafc; 
+            padding: 16px; 
+            text-align: left; 
+            color: #64748b;
+            font-weight: 600;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        td { 
+            padding: 16px; 
+            border-bottom: 1px solid #f1f5f9; 
+        }
+
+        .recap-row { cursor: pointer; transition: 0.2s; }
+        .recap-row:hover { background: #f8fafc; }
+
+        /* Detail Row */
+        .detail-row { display: none; background: #fafafa; }
+        .detail-container { padding: 15px; border-left: 4px solid var(--primary); }
+        .detail-badge { 
+            display: inline-block; 
+            padding: 5px 12px; 
+            background: #fff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            margin: 4px; 
+            font-size: 0.8rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Chart Area */
+        .chart-wrapper { 
+            position: relative; 
+            height: 300px; 
+            width: 100%; 
+        }
+
+        @media (max-width: 600px) {
+            .input-group { flex-direction: column; }
+            button { width: 100%; }
+            body { padding: 10px; }
+            .card { padding: 16px; }
+        }
+
+        @media print {
+            .card:not(#grafikAbsen, #tableCard), #pinCard, #filterCard, .status-msg, button {
+                display: none !important;
+            }
+            .container { width: 100%; max-width: none; }
+            .card { box-shadow: none; border: none; padding: 0; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h2>Rekap Absensi <span id="displayMonth"></span></h2>
+    </header>
+
+    <div id="statusMessage" class="status-msg info">Silakan masukkan PIN untuk memverifikasi akses.</div>
+
+    <!-- Kartu Verifikasi PIN -->
+    <div class="card" id="pinCard">
+        <h4 class="card-title">🔐 PIN</h4>
+        <div class="form-group">
+            <label for="pinInput">PIN Harian</label>
+            <div class="input-group">
+                <input type="password" id="pinInput" placeholder="4 Digit PIN" maxlength="4" inputmode="numeric">
+                <button onclick="checkPin()">Cek PIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Konten Utama (Akan di-unlock) -->
+    <div id="mainContent" style="opacity: 0.3; pointer-events: none; transition: all 0.5s;">
+        
+        <!-- Kartu Filter -->
+        <div class="card" id="filterCard">
+            <h4 class="card-title">📅 Filter Periode</h4>
+            <div class="form-group">
+                <label for="monthFilter">Pilih Bulan & Tahun</label>
+                <div class="input-group">
+                    <input type="month" id="monthFilter">
+                    <button onclick="loadMonthlyRecap()">Tampilkan Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kartu Grafik -->
+        <div class="card" id="grafikAbsen">
+            <h4 class="card-title">📊 Grafik Ketidakhadiran per Kelas</h4>
+            <div class="chart-wrapper">
+                <canvas id="absensiChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Kartu Tabel -->
+        <div class="card" id="tableCard">
+            <h4 class="card-title">📋 Detail Rekapitulasi</h4>
+            <div class="table-container">
+                <table id="monthlyRecapTable">
+                    <thead>
+                        <tr>
+                            <th>Nama Murid</th>
+                            <th>Kelas</th>
+                            <th>Ijin</th>
+                            <th>Sakit</th>
+                            <th>Alfa</th>
+                            <th>Bolos</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyRecapBody">
+                        <tr><td colspan="7" style="text-align:center; padding: 40px; color: #94a3b8;">Silakan filter data terlebih dahulu.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const APPS_URL = 'https://script.google.com/macros/s/AKfycbxKZb0_luWbi_hyK0J-z2nULpxEQBJ3nLX0BjcZdbu9TKDP9cK1YeSmzDYCiDgOPerS0A/exec';
+    const TARGET_SPREADSHEET_ID = '155zxqegWdt7eUXQdDPnhp834tuI3f8vjDguoB6kMqok';
+    const SHEET_ABSENSI = 'DataAbsen';
+    let myChart = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        
+        document.getElementById('monthFilter').value = currentMonth;
+        document.getElementById('displayMonth').innerText = "- " + formatIndoMonth(currentMonth);
+    
+        const savedPin = localStorage.getItem('userPin');
+        if (savedPin) {
+            document.getElementById('pinInput').value = savedPin;
+            checkPin(true);
+        }
+    });
+
+    function formatIndoMonth(monthInput) {
+        if (!monthInput) return "";
+        const date = new Date(monthInput + "-01");
+        return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(date);
+    }
+
+    function displayMessage(type, msg) {
+        const el = document.getElementById('statusMessage');
+        el.className = 'status-msg ' + type;
+        el.innerHTML = msg;
+        el.style.display = 'block';
+    }
+
+    async function checkPin(isAutoCheck = false) {
+        const pinInput = document.getElementById('pinInput');
+        const pin = pinInput.value.trim();
+
+        if (pin.length !== 4) {
+            if (!isAutoCheck) displayMessage('error', 'PIN harus 4 digit.');
+            return;
+        }
+
+        if (!isAutoCheck) displayMessage('info', 'Memverifikasi PIN...');
+
+        try {
+            const res = await fetch(`${APPS_URL}?action=checkPin&PIN=${pin}`);
+            const data = await res.json();
+            
+            if (data.success) {
+                localStorage.setItem('userPin', pin);
+                displayMessage('success', 'Akses Terverifikasi.');
+                unlockContent();
+            } else {
+                if (!isAutoCheck) {
+                    displayMessage('error', 'PIN Salah atau Kadaluarsa!');
+                    localStorage.removeItem('userPin');
+                }
+            }
+        } catch (e) {
+            if (!isAutoCheck) displayMessage('error', 'Gagal verifikasi: ' + e.message);
+        }
+    }
+
+    function unlockContent() {
+        const mainContent = document.getElementById('mainContent');
+        const pinCard = document.getElementById('pinCard');
+        
+        mainContent.style.opacity = '1';
+        mainContent.style.pointerEvents = 'auto';
+        pinCard.style.display = 'none'; // Sembunyikan kartu PIN setelah berhasil
+    }
+
+    async function loadMonthlyRecap() {
+        const month = document.getElementById('monthFilter').value;
+        const tbody = document.getElementById('monthlyRecapBody');
+    
+        document.getElementById('displayMonth').innerText = "- " + formatIndoMonth(month);
+        displayMessage('info', `Memuat data bulan ${formatIndoMonth(month)}...`);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px;">Sedang memproses data dari server...</td></tr>';
+
+        try {
+            const url = `${APPS_URL}?action=vars&sheetName=${SHEET_ABSENSI}&spreadsheetId=${TARGET_SPREADSHEET_ID}&filterKey=Tanggal&filterValue=${month}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.error || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px;">Tidak ada data ditemukan untuk periode ini.</td></tr>';
+                return displayMessage('error', 'Data tidak tersedia.');
+            }
+
+            const recapData = processData(data);
+            renderTable(recapData);
+            renderChart(recapData);
+            displayMessage('success', 'Data berhasil diperbarui.');
+        } catch (e) {
+            displayMessage('error', 'Gagal memuat data: ' + e.message);
+        }
+    }
+
+    function processData(data) {
+        const recap = {};
+        data.forEach(entry => {
+            const key = entry.Nama;
+            if (!recap[key]) {
+                recap[key] = { Nama: entry.Nama, Kelas: entry.Kelas, Ijin: 0, Sakit: 0, Alfa: 0, Bolos: 0, Total: 0, Details: [] };
+            }
+            const ket = entry.KeteranganAbsen === "Tanpa Keterangan" ? "Alfa" : entry.KeteranganAbsen;
+            if (recap[key][ket] !== undefined) {
+                recap[key][ket]++;
+                recap[key].Total++;
+                recap[key].Details.push({ tgl: entry.Tanggal, ket: ket });
+            }
+        });
+        return Object.values(recap).sort((a,b) => a.Kelas.localeCompare(b.Kelas) || a.Nama.localeCompare(b.Nama));
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('monthlyRecapBody');
+        tbody.innerHTML = '';
+        data.forEach((entry, i) => {
+            const row = tbody.insertRow();
+            row.className = 'recap-row';
+            row.onclick = () => {
+                const det = document.getElementById('det-' + i);
+                det.style.display = det.style.display === 'table-row' ? 'none' : 'table-row';
+            };
+            row.innerHTML = `
+                <td><div style="font-weight: 600;">${entry.Nama}</div></td>
+                <td><span style="color: #64748b">${entry.Kelas}</span></td>
+                <td><span style="color: var(--warning)">${entry.Ijin}</span></td>
+                <td><span style="color: var(--success)">${entry.Sakit}</span></td>
+                <td><span style="color: var(--danger)">${entry.Alfa}</span></td>
+                <td><span style="color: #64748b">${entry.Bolos}</span></td>
+                <td><strong>${entry.Total}</strong></td>
+            `;
+            
+            const detailRow = tbody.insertRow();
+            detailRow.id = 'det-' + i;
+            detailRow.className = 'detail-row';
+            const detailContent = entry.Details.map(d => `<span class="detail-badge"><b>${d.tgl}:</b> ${d.ket}</span>`).join('');
+            detailRow.innerHTML = `<td colspan="7"><div class="detail-container"><strong>Riwayat Kehadiran:</strong><br>${detailContent}</div></td>`;
+        });
+    }
+
+    function renderChart(recapData) {
+        const classTotals = {};
+        recapData.forEach(e => {
+            if (!classTotals[e.Kelas]) classTotals[e.Kelas] = { Ijin: 0, Sakit: 0, Alfa: 0, Bolos: 0 };
+            classTotals[e.Kelas].Ijin += e.Ijin;
+            classTotals[e.Kelas].Sakit += e.Sakit;
+            classTotals[e.Kelas].Alfa += e.Alfa;
+            classTotals[e.Kelas].Bolos += e.Bolos;
+        });
+
+        const labels = Object.keys(classTotals);
+        if (myChart) myChart.destroy();
+        myChart = new Chart(document.getElementById('absensiChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'Ijin', data: labels.map(l => classTotals[l].Ijin), backgroundColor: '#ffb703' },
+                    { label: 'Sakit', data: labels.map(l => classTotals[l].Sakit), backgroundColor: '#4cc9f0' },
+                    { label: 'Alfa', data: labels.map(l => classTotals[l].Alfa), backgroundColor: '#f72585' },
+                    { label: 'Bolos', data: labels.map(l => classTotals[l].Bolos), backgroundColor: '#94a3b8' }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: { 
+                    x: { stacked: true, grid: { display: false } }, 
+                    y: { stacked: true, grid: { color: '#f1f5f9' } } 
+                } 
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
