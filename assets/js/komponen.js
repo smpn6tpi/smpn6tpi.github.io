@@ -1,4 +1,4 @@
-const APP_URL_KOMPONEN = 'https://script.google.com/macros/s/AKfycbxKZb0_luWbi_hyK0J-z2nULpxEQBJ3nLX0BjcZdbu9TKDP9cK1YeSmzDYCiDgOPerS0A/exec';
+//const APP_URL_KOMPONEN = '';
 document.addEventListener('DOMContentLoaded', function() {
         // Hanya dijalankan jika APP_URL_KOMPONEN sudah didefinisikan
         if (typeof APP_URL_KOMPONEN === 'undefined') return;
